@@ -13,7 +13,7 @@ import {
 	corsOptions,
 	errorHandler,
 	notFoundHandler,
-} from "./middleware/index.js";
+} from "./common/middleware/index.js";
 import { env } from "./config/env.js";
 
 const app: Express = express();

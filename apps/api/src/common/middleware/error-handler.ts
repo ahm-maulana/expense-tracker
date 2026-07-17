@@ -1,6 +1,7 @@
 import type { ApiErrorResponse } from "@repo/api-contracts";
 import type { NextFunction, Request, Response } from "express";
-import { AppError } from "../common/errors/index.js";
+import z, { ZodError } from "zod";
+import { AppError } from "../errors/index.js";
 
 export function errorHandler(
 	error: Error,
@@ -11,6 +12,15 @@ export function errorHandler(
 	if (error instanceof AppError) {
 		return res.status(error.statusCode).json({
 			message: error.message,
+		});
+	}
+
+	if (error instanceof ZodError) {
+		const flattenedErrors = z.flattenError(error);
+
+		return res.status(400).json({
+			message: "Validation failed",
+			errors: flattenedErrors.fieldErrors,
 		});
 	}
 
