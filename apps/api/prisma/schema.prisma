@@ -26,6 +26,22 @@ model User {
   updatedAt     DateTime  @updatedAt()
   categories    Category[]
   transactions  Transaction[]
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id            String @id @default(uuid())
+  jti           String @unique
+  
+  userId        String
+  user          User @relation(fields: [userId], references: [id])
+
+  expiresAt     DateTime
+  revokedAt     DateTime?
+
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Category {
