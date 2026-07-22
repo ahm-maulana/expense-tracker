@@ -1,3 +1,6 @@
+import type { UserDto } from "@repo/api-contracts";
+import type { Request } from "express";
+
 export interface AccessTokenPayload {
 	sub: string;
 }
@@ -15,7 +18,22 @@ export interface CreateUserInput {
 
 export interface CreateRefreshTokenInput {
 	jti: string;
+	tokenHash: string;
 	userId: string;
 	expiresAt: Date;
 	revokedAt?: Date;
+}
+
+export interface LoginResult {
+	user: UserDto;
+	accessToken: string;
+	refreshToken: string;
+}
+
+export interface AuthenticatedUser {
+	id: string;
+}
+
+export interface AuthenticateRequest extends Request {
+	user: AuthenticatedUser;
 }

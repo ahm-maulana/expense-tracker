@@ -1,4 +1,6 @@
-import { vi, describe, it, expect } from "vitest";
+import { randomUUID } from "node:crypto";
+import { describe, expect, it } from "vitest";
+import { UnauthorizedError } from "../common/errors/app-error.js";
 import {
 	decodeToken,
 	signAccessToken,
@@ -6,8 +8,6 @@ import {
 	verifyAccessToken,
 	verifyRefreshToken,
 } from "./jwt.js";
-import { randomUUID } from "node:crypto";
-import { UnauthorizedError } from "../common/errors/app-error.js";
 
 describe("jwt", () => {
 	describe("signAccessToken function", () => {

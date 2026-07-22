@@ -40,8 +40,5 @@ export const loginSchema = z.object({
 	password: z.string(),
 });
 
-export type RegisterInput = Omit<
-	z.infer<typeof registerSchema>,
-	"confirmPassword"
->;
+export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;

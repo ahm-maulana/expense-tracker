@@ -32,7 +32,8 @@ model User {
 model RefreshToken {
   id            String @id @default(uuid())
   jti           String @unique
-  
+  tokenHash     String @unique
+
   userId        String
   user          User @relation(fields: [userId], references: [id])
 

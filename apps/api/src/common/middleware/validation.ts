@@ -7,7 +7,7 @@ interface ValidationSchema {
 	params?: ZodType;
 }
 
-export function validation(schema: ValidationSchema) {
+export function validate(schema: ValidationSchema) {
 	return (req: Request, _res: Response, next: NextFunction) => {
 		try {
 			if (schema.body) {
@@ -16,7 +16,6 @@ export function validation(schema: ValidationSchema) {
 
 			if (schema.query) {
 				const validated = schema.query.parse(req.query);
-
 				Object.assign(req.query, validated);
 			}
 
@@ -32,13 +31,13 @@ export function validation(schema: ValidationSchema) {
 }
 
 export function validateBody(schema: ZodType) {
-	validation({ body: schema });
+	validate({ body: schema });
 }
 
 export function validateQuery(schema: ZodType) {
-	validation({ query: schema });
+	validate({ query: schema });
 }
 
 export function validateParams(schema: ZodType) {
-	validation({ params: schema });
+	validate({ params: schema });
 }
