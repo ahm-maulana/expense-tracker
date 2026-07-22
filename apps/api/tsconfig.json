@@ -3,9 +3,8 @@
 	"compilerOptions": {
 		"lib": ["ES2022"],
 		"strictNullChecks": true,
-		"rootDir": "src",
 		"outDir": "dist"
 	},
 	"exclude": ["node_modules", "dist"],
-	"include": ["src/**/*"]
+	"include": ["src/**/*", "prisma.config.ts"]
 }
