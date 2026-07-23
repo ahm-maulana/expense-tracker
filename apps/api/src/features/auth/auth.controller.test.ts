@@ -50,6 +50,7 @@ describe("AuthController", () => {
 			json: vi.fn().mockReturnThis(),
 			cookie: vi.fn().mockReturnThis(),
 			clearCookie: vi.fn().mockReturnThis(),
+			sendStatus: vi.fn().mockReturnThis(),
 		} as unknown as Response;
 
 		mockNext = vi.fn();
@@ -244,7 +245,7 @@ describe("AuthController", () => {
 				"refreshToken",
 				cookieOptions,
 			);
-			expect(mockRes.status).toHaveBeenCalledWith(204);
+			expect(mockRes.sendStatus).toHaveBeenCalledWith(204);
 		});
 	});
 });

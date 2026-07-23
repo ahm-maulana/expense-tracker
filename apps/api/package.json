@@ -8,11 +8,15 @@
 		"dev": "tsx watch src/server.ts",
 		"build": "tsc",
 		"test": "vitest",
+		"test:unit": "vitest --project unit",
+		"test:integration": "vitest --project integration",
 		"db:generate": "prisma generate",
 		"db:migrate": "prisma migrate dev",
 		"db:deploy": "prisma migrate deploy",
 		"db:reset": "prisma migrate reset",
-		"db:studio": "prisma studio"
+		"db:studio": "prisma studio",
+		"db:test:push": "dotenv -e .env.test -- prisma db push",
+		"db:test:migrate": "dotenv -e .env.test -- prisma migrate dev"
 	},
 	"devDependencies": {
 		"@types/bcrypt": "^6.0.0",
@@ -24,6 +28,8 @@
 		"@types/jsonwebtoken": "^9.0.10",
 		"@types/morgan": "^1.9.10",
 		"@types/node": "^22.20.1",
+		"@types/supertest": "^7.2.1",
+		"dotenv-cli": "^11.0.0",
 		"prisma": "^7.8.0",
 		"tsx": "^4.23.1",
 		"vitest": "^4.1.10"
@@ -41,6 +47,7 @@
 		"helmet": "^8.3.0",
 		"jsonwebtoken": "^9.0.3",
 		"morgan": "^1.11.0",
+		"supertest": "^7.2.2",
 		"zod": "^4.4.3"
 	}
 }
