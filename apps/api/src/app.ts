@@ -15,6 +15,24 @@ import {
 	notFoundHandler,
 } from "./common/middleware/index.js";
 import { env } from "./config/env.js";
+import {
+	AuthController,
+	AuthRepository,
+	AuthService,
+	authRoutes,
+	RefreshTokenRepository,
+} from "./features/auth/index.js";
+import { prisma } from "./lib/prisma.js";
+
+// Repositories
+const authRepository = new AuthRepository(prisma);
+const refreshTokenRepository = new RefreshTokenRepository(prisma);
+
+// Services
+const authService = new AuthService(authRepository, refreshTokenRepository);
+
+// Controller
+const authController = new AuthController(authService);
 
 const app: Express = express();
 
@@ -50,6 +68,8 @@ app.get("/health", (_req: Request, res: Response, _next: NextFunction) => {
 		environment: env.NODE_ENV,
 	});
 });
+
+app.use("/api/auth", authRoutes(authController));
 
 // Not Found Handler
 app.use(notFoundHandler);
