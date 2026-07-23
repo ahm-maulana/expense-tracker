@@ -31,13 +31,13 @@ export function validate(schema: ValidationSchema) {
 }
 
 export function validateBody(schema: ZodType) {
-	validate({ body: schema });
+	return validate({ body: schema });
 }
 
 export function validateQuery(schema: ZodType) {
-	validate({ query: schema });
+	return validate({ query: schema });
 }
 
 export function validateParams(schema: ZodType) {
-	validate({ params: schema });
+	return validate({ params: schema });
 }

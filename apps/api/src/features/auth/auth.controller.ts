@@ -68,7 +68,7 @@ class AuthController {
 	refresh = async (
 		req: Request,
 		res: Response<ApiResponse<LoginResponse>>,
-		_next: NextFunction,
+		next: NextFunction,
 	) => {
 		const refreshToken = req.cookies.refreshToken;
 
@@ -96,19 +96,23 @@ class AuthController {
 					accessToken,
 				},
 			});
-		} catch {
+		} catch (error) {
 			res.clearCookie("refreshToken", {
 				httpOnly: true,
 				secure: env.NODE_ENV === "production",
 				sameSite: "strict",
 				maxAge: ms(env.JWT_REFRESH_EXPIRES_IN as StringValue),
 			});
+
+			next(error);
 		}
 	};
 
 	logout = async (req: Request, res: Response, _next: NextFunction) => {
 		const refreshToken = req.cookies.refreshToken;
+
 		await this.service.logout(refreshToken);
+
 		res.clearCookie("refreshToken", {
 			httpOnly: true,
 			secure: env.NODE_ENV === "production",
@@ -116,7 +120,7 @@ class AuthController {
 			maxAge: ms(env.JWT_REFRESH_EXPIRES_IN as StringValue),
 		});
 
-		res.status(204);
+		res.sendStatus(204);
 	};
 }
 
