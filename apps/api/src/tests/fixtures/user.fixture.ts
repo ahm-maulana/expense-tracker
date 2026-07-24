@@ -9,3 +9,9 @@ export const validLoginInput = {
 	email: "john@example.com",
 	password: "Secret123@",
 };
+
+export const validUpdatePasswordInput = {
+	currentPassword: "Secret123@",
+	newPassword: "NewSecret123@",
+	confirmPassword: "NewSecret123@",
+};

@@ -3,3 +3,8 @@ export interface UserDto {
 	name: string;
 	email: string;
 }
+
+export interface UserProfileDto extends UserDto {
+	createdAt: Date;
+	updatedAt: Date;
+}
