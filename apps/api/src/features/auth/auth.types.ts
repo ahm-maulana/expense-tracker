@@ -1,5 +1,4 @@
 import type { UserDto } from "@repo/api-contracts";
-import type { Request } from "express";
 
 export interface AccessTokenPayload {
 	sub: string;
@@ -32,8 +31,4 @@ export interface LoginResult {
 
 export interface AuthenticatedUser {
 	id: string;
-}
-
-export interface AuthenticateRequest extends Request {
-	user: AuthenticatedUser;
 }
