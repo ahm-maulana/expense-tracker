@@ -1,8 +1,5 @@
+import { updatePasswordSchema, updateUserSchema } from "@repo/api-contracts";
 import { Router } from "express";
-import {
-	updatePasswordSchema,
-	updateUserSchema,
-} from "../../../../../packages/api-contracts/src/user/user.schemas.js";
 import { authenticate } from "../../common/middleware/authenticate.js";
 import { validateBody } from "../../common/middleware/validation.js";
 import type UserController from "./user.controller.js";
