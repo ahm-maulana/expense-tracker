@@ -1,10 +1,12 @@
 {
 	"extends": "@repo/typescript-config/base.json",
 	"compilerOptions": {
+		"types": ["node"],
 		"lib": ["ES2022"],
 		"strictNullChecks": true,
+		"rootDir": "src",
 		"outDir": "dist"
 	},
 	"exclude": ["node_modules", "dist"],
-	"include": ["src/**/*", "prisma.config.ts"]
+	"include": ["src"]
 }
