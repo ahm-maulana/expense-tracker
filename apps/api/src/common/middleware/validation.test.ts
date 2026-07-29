@@ -50,6 +50,12 @@ describe("validation", () => {
 			middleware(mockReq, mockRes, mockNext);
 
 			expect(mockNext).toHaveBeenCalledWith();
+			expect(mockReq.validated).toEqual({
+				body: {
+					email: "john@example.com",
+					name: "John Doe",
+				},
+			});
 		});
 
 		it("should call next(error) when body is invalid", () => {
@@ -74,7 +80,12 @@ describe("validation", () => {
 			middleware(mockReq, mockRes, mockNext);
 
 			expect(mockNext).toHaveBeenCalledWith();
-			expect(mockReq.query.page).toBe(10);
+			expect(mockReq.validated).toEqual({
+				query: {
+					page: 10,
+					search: "hello",
+				},
+			});
 		});
 
 		it("should call next(error) when query is invalid", () => {
@@ -90,14 +101,20 @@ describe("validation", () => {
 		});
 
 		it("should call next when params is valid", () => {
+			const mockId = randomUUID();
 			mockReq.params = {
-				id: randomUUID(),
+				id: mockId,
 			};
 
 			const middleware = validate({ params: testParamsSchema });
 			middleware(mockReq, mockRes, mockNext);
 
 			expect(mockNext).toHaveBeenCalledWith();
+			expect(mockReq.validated).toEqual({
+				params: {
+					id: mockId,
+				},
+			});
 		});
 
 		it("should call next(error) when params is invalid", () => {
