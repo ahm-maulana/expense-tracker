@@ -10,17 +10,17 @@ interface ValidationSchema {
 export function validate(schema: ValidationSchema) {
 	return (req: Request, _res: Response, next: NextFunction) => {
 		try {
+			req.validated ??= {};
 			if (schema.body) {
-				req.body = schema.body.parse(req.body);
+				req.validated.body = schema.body.parse(req.body);
 			}
 
 			if (schema.query) {
-				const validated = schema.query.parse(req.query);
-				Object.assign(req.query, validated);
+				req.validated.query = schema.query.parse(req.query);
 			}
 
 			if (schema.params) {
-				schema.params.parse(req.params);
+				req.validated.params = schema.params.parse(req.params);
 			}
 
 			next();

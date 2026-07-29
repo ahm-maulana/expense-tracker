@@ -22,6 +22,10 @@ import {
 	authRoutes,
 	RefreshTokenRepository,
 } from "./features/auth/index.js";
+import CategoryController from "./features/category/category.controller.js";
+import CategoryRepository from "./features/category/category.repository.js";
+import { categoryRoutes } from "./features/category/category.routes.js";
+import CategoryService from "./features/category/category.service.js";
 import {
 	UserController,
 	UserRepository,
@@ -34,14 +38,17 @@ import { prisma } from "./lib/prisma.js";
 const authRepository = new AuthRepository(prisma);
 const refreshTokenRepository = new RefreshTokenRepository(prisma);
 const userRepository = new UserRepository(prisma);
+const categoryRepository = new CategoryRepository(prisma);
 
 // Services
 const authService = new AuthService(authRepository, refreshTokenRepository);
 const userService = new UserService(userRepository);
+const categoryService = new CategoryService(categoryRepository);
 
 // Controller
 const authController = new AuthController(authService);
 const userController = new UserController(userService);
+const categoryController = new CategoryController(categoryService);
 
 const app: Express = express();
 
@@ -80,6 +87,7 @@ app.get("/health", (_req: Request, res: Response, _next: NextFunction) => {
 
 app.use("/api/auth", authRoutes(authController));
 app.use("/api/users", userRoutes(userController));
+app.use("/api/categories", categoryRoutes(categoryController));
 
 // Not Found Handler
 app.use(notFoundHandler);

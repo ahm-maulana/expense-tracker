@@ -1,5 +1,5 @@
 import z from "zod";
-import { passwordSchema } from "../common/schemas.js";
+import { passwordSchema } from "../common/index.js";
 
 export const updateUserSchema = z.object({
 	name: z

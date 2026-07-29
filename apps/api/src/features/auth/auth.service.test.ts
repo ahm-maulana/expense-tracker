@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { LoginInput, RegisterInput } from "@repo/api-contracts";
 import bcrypt from "bcrypt";
-import type { JwtPayload } from "jsonwebtoken";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	ConflictError,
@@ -16,6 +15,7 @@ import {
 } from "../../lib/jwt.js";
 import type AuthRepository from "./auth.repository.js";
 import AuthService from "./auth.service.js";
+import type { RefreshTokenPayload } from "./auth.types.js";
 import type RefreshTokenRepository from "./refresh-token-repository.js";
 
 vi.mock("./auth.repository.ts");
@@ -188,11 +188,12 @@ describe("AuthService", () => {
 	describe("refresh function", () => {
 		const jti = randomUUID();
 
-		const decodedToken: JwtPayload = {
+		const user = createMockUser();
+
+		const decodedToken: RefreshTokenPayload = {
+			sub: user.id,
 			jti,
 		};
-
-		const user = createMockUser();
 
 		const refreshTokenSession = createMockRefreshToken({
 			userId: user.id,
