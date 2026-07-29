@@ -16,3 +16,9 @@ export const passwordSchema = z
 	.refine((pwd) => /[!@#$%^&*?]/.test(pwd), {
 		error: "Password must contain at least one special character (!@#$%^&*?)",
 	});
+
+export const categoryType = z.enum(["INCOME", "EXPENSE"]);
+
+export const uuidParamSchema = z.object({
+	id: z.uuid(),
+});

@@ -75,10 +75,9 @@ export const http = {
 
 	delete: <T = unknown>(
 		path: string,
-		body?: RequestBody,
 		init?: {
 			headers?: Response["headers"];
 			cookies?: string[];
 		},
-	) => testRequest<T>({ method: "delete", path, body, ...init }),
+	) => testRequest<T>({ method: "delete", path, ...init }),
 };
