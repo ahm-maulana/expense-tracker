@@ -1,8 +1,6 @@
 register:
   post:
     summary: Register a new user
-    security:
-      - BearerAuth: []
     tags:
       - Authentication
     requestBody:
@@ -48,8 +46,6 @@ register:
 login:
   post:
     summary: Login
-    security:
-      - BearerAuth: []
     tags:
       - Authentication
     requestBody:
@@ -128,8 +124,6 @@ logout:
         schema:
           type: string
         description: HTTP-only refresh token cookie.
-    security:
-      - RefreshCookie: []
     tags:
       - Authentication
     responses:
