@@ -1,0 +1,102 @@
+TransactionDto:
+  type: object
+  required:
+    - id
+    - title
+    - amount
+    - transactionDate
+    - category
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      $ref: "../openapi.yaml#/components/schemas/UUID"
+    title:
+      type: string
+      example: Lunch
+    description:
+      type: string
+      example: Lunch with family
+    amount:
+      type: number
+      example: 10.5
+    transactionDate:
+      $ref: "../openapi.yaml#/components/schemas/DateTime"
+    category:
+      type: object
+      required:
+        - id
+        - name
+        - type
+      properties:
+        id:
+          $ref: "../openapi.yaml#/components/schemas/UUID"
+        name:
+          type: string
+          example: Food
+        type:
+          $ref: "../openapi.yaml#/components/schemas/CategoryType"
+    createdAt:
+      $ref: "../openapi.yaml#/components/schemas/DateTime"
+    updatedAt:
+      $ref: "../openapi.yaml#/components/schemas/DateTime"
+
+CreateTransactionRequest:
+  type: object
+  required:
+    - title
+    - amount
+    - categoryType
+    - transactionDate
+  properties:
+    title:
+      type: string
+      example: Lunch
+    description:
+      type: string
+      example: Dinner with family
+    amount:
+      type: number
+      example: 99.9
+    categoryType:
+      $ref: "../openapi.yaml#/components/schemas/CategoryType"
+    transactionDate:
+      $ref: "../openapi.yaml#/components/schemas/DateTime"
+
+UpdateTransactionRequest:
+  type: object
+  properties:
+    title:
+      type: string
+      example: Lunch
+    description:
+      type: string
+      example: Dinner with family
+    amount:
+      type: number
+      example: 99.9
+    categoryType:
+      $ref: "../openapi.yaml#/components/schemas/CategoryType"
+    transactionDate:
+      $ref: "../openapi.yaml#/components/schemas/DateTime"
+
+TransactionResponse:
+  type: object
+  required:
+    - data
+  properties:
+    data:
+      $ref: "#/TransactionDto"
+
+TransactionsResponse:
+  type: object
+  required:
+    - data
+    - meta
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/TransactionDto"
+    meta:
+      $ref: "../openapi.yaml#/components/schemas/Pagination"

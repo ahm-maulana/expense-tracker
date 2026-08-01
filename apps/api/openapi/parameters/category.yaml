@@ -1,0 +1,42 @@
+CategoryId:
+  name: categoryId
+  description: The unique identifier of the category
+  in: path
+  required: true
+  schema:
+    type: string
+    format: uuid
+    example: 550e8400-e29b-41d4-a716-446655440000
+
+CategorySearch:
+  name: search
+  description: Search by name
+  in: query
+  required: false
+  schema:
+    type: string
+    example: Food
+
+CategoryType:
+  name: type
+  description: Category type
+  in: query
+  required: false
+  schema:
+    type: string
+    enum:
+      - INCOME
+      - EXPENSE
+    example: EXPENSE
+
+CategorySortBy:
+  name: sortBy
+  in: query
+  description: Field to sort by
+  required: false
+  schema:
+    type: string
+    enum:
+      - name
+      - createdAt
+    example: createdAt

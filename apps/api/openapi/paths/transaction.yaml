@@ -1,0 +1,193 @@
+transactions:
+  get:
+    tags:
+      - Transaction
+    summary: Get transactions
+    description: Retrieve a paginated list of transactions owned by authenticated user
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: "../openapi.yaml#/components/parameters/TransactionId"
+      - $ref: "../openapi.yaml#/components/parameters/TransactionSearch"
+      - $ref: "../openapi.yaml#/components/parameters/TransactionSortBy"
+      - $ref: "../openapi.yaml#/components/parameters/Page"
+      - $ref: "../openapi.yaml#/components/parameters/Limit"
+      - $ref: "../openapi.yaml#/components/parameters/OrderBy"
+    responses:
+      "200":
+        description: Paginated categories retrieved successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/TransactionsResponse"
+      "400":
+        description: Invalid query
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Validation failed
+              errors:
+                page:
+                  - Invalid value
+                limit:
+                  - Invalid value
+                orderBy:
+                  - Invalid value
+                type:
+                  - Invalid value
+                sortBy:
+                  - Invalid value
+      "401":
+        $ref: "../openapi.yaml#/components/responses/UnauthorizedError"
+  post:
+    tags:
+      - Transaction
+    summary: Create a new transaction
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../openapi.yaml#/components/schemas/CreateTransactionRequest"
+    responses:
+      "201":
+        description: Transaction created successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/TransactionResponse"
+      "400":
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Validation error
+              errors:
+                title:
+                  - Title is required
+                description:
+                  - Description must not exceed 500 characters
+                amount:
+                  - Amount must be greater than 0
+                transactionDate:
+                  - Transaction date must be a valid date
+                CategoryId:
+                  - CategoryId is invalid
+      "401":
+        $ref: "../openapi.yaml#/components/responses/UnauthorizedError"
+transactionById:
+  get:
+    tags:
+      - Transaction
+    summary: Get transaction by id
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: "../openapi.yaml#/components/parameters/TransactionId"
+    responses:
+      "200":
+        description: Transaction retrieved successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/TransactionResponse"
+      "404":
+        description: Transaction not found
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Transaction not found.
+      "401":
+        $ref: "../openapi.yaml#/components/responses/UnauthorizedError"
+  patch:
+    tags:
+      - Transaction
+    summary: Update transaction by id
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: "../openapi.yaml#/components/parameters/TransactionId"
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../openapi.yaml#/components/schemas/CreateTransactionRequest"
+    responses:
+      "200":
+        description: Transaction updated successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/TransactionResponse"
+      "400":
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Validation error
+              errors:
+                transactionId:
+                  - transactionId must be a valid UUID
+                title:
+                  - Title is required
+                description:
+                  - Description must not exceed 500 characters
+                amount:
+                  - Amount must be greater than 0
+                transactionDate:
+                  - Transaction date must be a valid date
+                CategoryId:
+                  - CategoryId is invalid
+      "401":
+        $ref: "../openapi.yaml#/components/responses/UnauthorizedError"
+      "404":
+        description: Transaction not found
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Transaction not found.
+  delete:
+    tags:
+      - Transaction
+    summary: Delete transaction by id
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: "../openapi.yaml#/components/parameters/TransactionId"
+    responses:
+      "204":
+        description: Transaction deleted successfully
+      "400":
+        description: Invalid query
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Validation failed
+              errors:
+                transactionId:
+                  - transactionId must be a valid UUID
+      "401":
+        $ref: "../openapi.yaml#/components/responses/UnauthorizedError"
+      "404":
+        description: Transaction not found
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Transaction not found.

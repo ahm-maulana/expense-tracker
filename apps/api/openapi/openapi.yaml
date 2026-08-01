@@ -1,0 +1,138 @@
+openapi: 3.1.0
+
+info:
+  title: Expense Tracker API
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3001
+
+paths:
+  /api/auth/register:
+    $ref: "./paths/auth.yaml#/register"
+  /api/auth/login:
+    $ref: "./paths/auth.yaml#/login"
+  /api/auth/refresh:
+    $ref: "./paths/auth.yaml#/refresh"
+  /api/auth/logout:
+    $ref: "./paths/auth.yaml#/logout"
+  /api/auth/forgot-password:
+    $ref: "./paths/auth.yaml#/forgotPassword"
+  /api/auth/reset-password:
+    $ref: "./paths/auth.yaml#/resetPassword"
+
+  /api/categories:
+    $ref: "./paths/category.yaml#/categories"
+  /api/categories/{categoryId}:
+    $ref: "./paths/category.yaml#/categoryById"
+
+  /api/transactions:
+    $ref: "./paths/transaction.yaml#/transactions"
+  /api/transactions/{transactionId}:
+    $ref: "./paths/transaction.yaml#/transactionById"
+
+  /api/users/me:
+    $ref: "./paths/user.yaml#/user"
+  /api/users/me/password:
+    $ref: "./paths/user.yaml#/userPassword"
+
+components:
+  schemas:
+    UserDto:
+      $ref: "./schemas/auth.yaml#/UserDto"
+    RegisterRequest:
+      $ref: "./schemas/auth.yaml#/RegisterRequest"
+    RegisterResponse:
+      $ref: "./schemas/auth.yaml#/RegisterResponse"
+    LoginRequest:
+      $ref: "./schemas/auth.yaml#/LoginRequest"
+    LoginResponse:
+      $ref: "./schemas/auth.yaml#/LoginResponse"
+    ForgotPasswordRequest:
+      $ref: "./schemas/auth.yaml#/ForgotPasswordRequest"
+    ForgotPasswordResponse:
+      $ref: "./schemas/auth.yaml#/ForgotPasswordResponse"
+    ResetPasswordRequest:
+      $ref: "./schemas/auth.yaml#/ResetPasswordRequest"
+    ResetPasswordResponse:
+      $ref: "./schemas/auth.yaml#/ResetPasswordResponse"
+
+    CategoryType:
+      $ref: "./schemas/category.yaml#/CategoryType"
+    CategoryDto:
+      $ref: "./schemas/category.yaml#/CategoryDto"
+    CreateCategoryRequest:
+      $ref: "./schemas/category.yaml#/CreateCategoryRequest"
+    UpdateCategoryRequest:
+      $ref: "./schemas/category.yaml#/UpdateCategoryRequest"
+    CategoryResponse:
+      $ref: "./schemas/category.yaml#/CategoryResponse"
+    CategoriesResponse:
+      $ref: "./schemas/category.yaml#/CategoriesResponse"
+
+    CreateTransactionRequest:
+      $ref: "./schemas/transaction.yaml#/CreateTransactionRequest"
+    UpdateTransactionRequest:
+      $ref: "./schemas/transaction.yaml#/UpdateTransactionRequest"
+    TransactionResponse:
+      $ref: "./schemas/transaction.yaml#/TransactionResponse"
+    TransactionsResponse:
+      $ref: "./schemas/transaction.yaml#/TransactionsResponse"
+
+    UserResponse:
+      $ref: "./schemas/user.yaml#/UserResponse"
+    ChangePasswordRequest:
+      $ref: "./schemas/user.yaml#/ChangePasswordRequest"
+
+    UUID:
+      $ref: "./schemas/common.yaml#/UUID"
+    DateTime:
+      $ref: "./schemas/common.yaml#/DateTime"
+    Pagination:
+      $ref: "./schemas/common.yaml#/Pagination"
+    ErrorResponse:
+      $ref: "./schemas/common.yaml#/ErrorResponse"
+
+  parameters:
+    CategoryId:
+      $ref: "./parameters/category.yaml#/CategoryId"
+    CategorySearch:
+      $ref: "./parameters/category.yaml#/CategorySearch"
+    CategoryType:
+      $ref: "./parameters/category.yaml#/CategoryType"
+    CategorySortBy:
+      $ref: "./parameters/category.yaml#/CategorySortBy"
+
+    TransactionId:
+      $ref: "./parameters/transaction.yaml#/TransactionId"
+    TransactionSearch:
+      $ref: "./parameters/transaction.yaml#/TransactionSearch"
+    TransactionSortBy:
+      $ref: "./parameters/transaction.yaml#/TransactionSortBy"
+
+    Page:
+      $ref: "./parameters/common.yaml#/Page"
+    Limit:
+      $ref: "./parameters/common.yaml#/Limit"
+    OrderBy:
+      $ref: "./parameters/common.yaml#/OrderBy"
+
+  responses:
+    UnauthorizedError:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas/common.yaml#/ErrorResponse"
+          example:
+            message: Unauthorized
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    RefreshCookie:
+      type: apiKey
+      in: cookie
+      name: refreshToken

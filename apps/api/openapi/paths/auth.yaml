@@ -1,0 +1,207 @@
+register:
+  post:
+    summary: Register a new user
+    security:
+      - BearerAuth: []
+    tags:
+      - Authentication
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../openapi.yaml#/components/schemas/RegisterRequest"
+    responses:
+      "201":
+        description: User registered successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/RegisterResponse"
+      "400":
+        description: Validation failed.
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Validation failed
+              errors:
+                name:
+                  - Name must be at least 2 characters
+                email:
+                  - Invalid email address
+                password:
+                  - Password must be at least 8 characters
+                confirmPassword:
+                  - Password doesn't match
+
+      "409":
+        description: Email already exists
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Email already exists
+
+login:
+  post:
+    summary: Login
+    security:
+      - BearerAuth: []
+    tags:
+      - Authentication
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../openapi.yaml#/components/schemas/LoginRequest"
+    responses:
+      "200":
+        description: Login successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/LoginResponse"
+      "401":
+        description: Invalid email or password
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Invalid email or password
+      "400":
+        description: Validation failed
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Validation failed
+              errors:
+                email:
+                  - Invalid email address
+
+refresh:
+  post:
+    summary: generate new access token
+    description: |
+      Generate a new access token using the refresh token stored in an HTTP-only cookie.
+    parameters:
+      - in: cookie
+        name: refreshToken
+        required: true
+        schema:
+          type: string
+        description: HTTP-only refresh token cookie.
+
+    security:
+      - RefreshCookie: []
+    tags:
+      - Authentication
+    responses:
+      "200":
+        description: Access token refreshed successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/LoginResponse"
+      "401":
+        description: Invalid or expired refresh token
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Invalid or expired refresh token
+
+logout:
+  post:
+    summary: Logout
+    parameters:
+      - in: cookie
+        name: refreshToken
+        required: true
+        schema:
+          type: string
+        description: HTTP-only refresh token cookie.
+    security:
+      - RefreshCookie: []
+    tags:
+      - Authentication
+    responses:
+      "204":
+        description: Logout successfully
+
+forgotPassword:
+  post:
+    tags:
+      - Authentication
+    summary: Send password reset email
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../openapi.yaml#/components/schemas/ForgotPasswordRequest"
+    responses:
+      "200":
+        description: Password reset email sent
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ForgotPasswordResponse"
+      "400":
+        description: Validation failed
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Validation failed
+              errors:
+                email:
+                  - Invalid email address
+
+resetPassword:
+  post:
+    summary: Reset password
+    security: []
+    tags:
+      - Authentication
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../openapi.yaml#/components/schemas/ResetPasswordRequest"
+    responses:
+      "200":
+        description: Password reset successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ResetPasswordResponse"
+      "400":
+        description: Validation failed
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            examples:
+              validation:
+                summary: Validation error
+                value:
+                  message: Validation Error.
+                  errors:
+                    password:
+                      - Password doesn't match
+
+              invalidToken:
+                summary: Invalid reset token
+                value:
+                  message: Invalid or expired reset token.

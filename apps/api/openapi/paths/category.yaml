@@ -1,0 +1,211 @@
+categories:
+  post:
+    summary: Create a new category
+    security:
+      - BearerAuth: []
+    tags:
+      - Category
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../openapi.yaml#/components/schemas/CreateCategoryRequest"
+    responses:
+      "200":
+        description: Category created successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/CategoryResponse"
+      "409":
+        description: Category already exists
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Category already exists.
+      "400":
+        description: Validation failed
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Validation failed
+              errors:
+                name:
+                  - Category name is required
+                type:
+                  - Category type must be either INCOME or EXPENSE
+      "401":
+        $ref: "../openapi.yaml#/components/responses/UnauthorizedError"
+  get:
+    tags:
+      - Category
+    summary: Get categories
+    description: Retrieve a paginated list of categories owned by authenticated user
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: "../openapi.yaml#/components/parameters/Page"
+      - $ref: "../openapi.yaml#/components/parameters/Limit"
+      - $ref: "../openapi.yaml#/components/parameters/OrderBy"
+      - $ref: "../openapi.yaml#/components/parameters/CategorySearch"
+      - $ref: "../openapi.yaml#/components/parameters/CategoryType"
+      - $ref: "../openapi.yaml#/components/parameters/CategorySortBy"
+    responses:
+      "200":
+        description: Paginated categories retrieved successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/CategoriesResponse"
+      "400":
+        description: Invalid query
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Validation failed
+              errors:
+                page:
+                  - Invalid value
+                limit:
+                  - Invalid value
+                orderBy:
+                  - Invalid value
+                type:
+                  - Invalid value
+                sortBy:
+                  - Invalid value
+
+      "401":
+        $ref: "../openapi.yaml#/components/responses/UnauthorizedError"
+
+categoryById:
+  get:
+    tags:
+      - Category
+    summary: Get category by id
+    description: Retrieve a category by id owned by authenticated user
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: "../openapi.yaml#/components/parameters/CategoryId"
+    responses:
+      "200":
+        description: Category retrieved successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/CategoryResponse"
+      "400":
+        description: Invalid CategoryId
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Validation failed
+              errors:
+                categoryId:
+                  - CategoryId must be a valid UUID
+
+      "404":
+        description: Category not found
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Category not found.
+      "401":
+        $ref: "../openapi.yaml#/components/responses/UnauthorizedError"
+
+  patch:
+    tags:
+      - Category
+    summary: Update category by id
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: "../openapi.yaml#/components/parameters/CategoryId"
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../openapi.yaml#/components/schemas/UpdateCategoryRequest"
+    responses:
+      "200":
+        description: Category updated successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/CategoryResponse"
+      "400":
+        description: Validation failed
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Validation failed
+              errors:
+                categoryId:
+                  - categoryId must be a valid UUID
+                name:
+                  - Category name is required
+                type:
+                  - Category type must be either INCOME or EXPENSE
+      "404":
+        description: Category not found
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Category not found.
+      "409":
+        description: Category is used by one or more transactions
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Category type cannot be changed because it contains transactions.
+      "401":
+        $ref: "../openapi.yaml#/components/responses/UnauthorizedError"
+
+  delete:
+    tags:
+      - Category
+    summary: Delete category by id
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: "../openapi.yaml#/components/parameters/CategoryId"
+    responses:
+      "204":
+        description: Category deleted successfully
+      "404":
+        description: Category not found
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Category not found.
+      "409":
+        description: Category is used by one or more transactions
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            example:
+              message: Category cannot be deleted because it is used by one or more transactions.
+      "401":
+        $ref: "../openapi.yaml#/components/responses/UnauthorizedError"

@@ -1,0 +1,71 @@
+CategoryNameType:
+  type: string
+  example: Food
+
+CategoryType:
+  type: string
+  enum:
+    - EXPENSE
+    - INCOME
+  example: EXPENSE
+
+CategoryDto:
+  type: object
+  required:
+    - id
+    - name
+    - type
+    - createdAt
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: 550e8400-e29b-41d4-a716-446655440000
+    name:
+      $ref: "#/CategoryNameType"
+    type:
+      $ref: "#/CategoryType"
+    createdAt:
+      type: string
+      format: date-time
+      example: "2026-07-31T05:30:00Z"
+
+CreateCategoryRequest:
+  type: object
+  required:
+    - name
+    - type
+  properties:
+    name:
+      $ref: "#/CategoryNameType"
+    type:
+      $ref: "#/CategoryType"
+
+UpdateCategoryRequest:
+  type: object
+  properties:
+    name:
+      $ref: "#/CategoryNameType"
+    type:
+      $ref: "#/CategoryType"
+
+CategoryResponse:
+  type: object
+  required:
+    - data
+  properties:
+    data:
+      $ref: "#/CategoryDto"
+
+CategoriesResponse:
+  type: object
+  required:
+    - data
+    - meta
+  properties:
+    data:
+      type: array
+      items:
+        $ref: "#/CategoryDto"
+    meta:
+      $ref: "../openapi.yaml#/components/schemas/Pagination"

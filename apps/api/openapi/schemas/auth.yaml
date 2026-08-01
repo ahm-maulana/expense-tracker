@@ -1,0 +1,135 @@
+UserDto:
+  type: object
+  required:
+    - id
+    - email
+    - name
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    email:
+      type: string
+      format: email
+      example: "john@example.com"
+    name:
+      type: string
+      example: "John Doe"
+
+RegisterRequest:
+  type: object
+  required:
+    - name
+    - email
+    - password
+    - confirmPassword
+  properties:
+    name:
+      type: string
+      example: "John Doe"
+    email:
+      type: string
+      format: email
+      example: "john@example.com"
+    password:
+      type: string
+      format: password
+      example: "Password123@"
+    confirmPassword:
+      type: string
+      format: password
+      example: "Password123@"
+
+LoginRequest:
+  type: object
+  required:
+    - email
+    - password
+  properties:
+    email:
+      type: string
+      format: email
+      example: "john@example.com"
+    password:
+      type: string
+      format: password
+      example: "Password123@"
+
+LoginResponse:
+  type: object
+  required:
+    - data
+  properties:
+    data:
+      type: object
+      required:
+        - accessToken
+        - user
+      properties:
+        accessToken:
+          type: string
+          format: JWT
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+        user:
+          $ref: "#/UserDto"
+
+RegisterResponse:
+  type: object
+  required:
+    - data
+  properties:
+    data:
+      $ref: "#/UserDto"
+
+ForgotPasswordRequest:
+  type: object
+  required:
+    - email
+  properties:
+    email:
+      type: string
+      format: email
+      example: john@example.com
+
+ForgotPasswordResponse:
+  type: object
+  required:
+    - message
+  properties:
+    data:
+      type: null
+    message:
+      type: string
+      example: If an account with that email exists, a password reset link has been sent.
+
+ResetPasswordRequest:
+  type: object
+  required:
+    - token
+    - password
+    - confirmPassword
+  properties:
+    token:
+      type: string
+      format: JWT
+      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+    password:
+      type: string
+      format: password
+      example: Password123@
+    confirmPassword:
+      type: string
+      format: password
+      example: Password123@
+
+ResetPasswordResponse:
+  type: object
+  required:
+    - message
+  properties:
+    data:
+      type: null
+    message:
+      type: string
+      example: Password has been reset successfully.

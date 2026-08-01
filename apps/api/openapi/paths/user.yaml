@@ -1,0 +1,97 @@
+user:
+  get:
+    tags:
+      - User
+    summary: Get current user info
+    security:
+      - BearerAuth: []
+    responses:
+      "200":
+        description: User info retrieve successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/UserResponse"
+      "401":
+        $ref: "../openapi.yaml#/components/responses/UnauthorizedError"
+  patch:
+    tags:
+      - User
+    summary: Update user profile
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+                example: John Doe
+
+    responses:
+      "200":
+        description: User profile updated successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/UserResponse"
+      "401":
+        $ref: "../openapi.yaml#/components/responses/UnauthorizedError"
+
+userPassword:
+  patch:
+    tags:
+      - User
+    summary: Change user password
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../openapi.yaml#/components/schemas/ChangePasswordRequest"
+    responses:
+      "200":
+        description: Password updated successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  example: Password updated successfully
+      "400":
+        description: Validation failed
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ErrorResponse"
+            examples:
+              validationError:
+                summary: Validation failed
+                value:
+                  message: Validation failed
+                  errors:
+                    newPassword:
+                      - Password must be at least 8 characters
+                    confirmPassword:
+                      - Passwords do not match
+              invalidCurrentPassword:
+                summary: Current password is incorrect
+                value:
+                  message: Current password is incorrect.
+              passwordUnchanged:
+                summary: New password is similar with current password
+                value:
+                  message: New password must be different from the current password.
+      "401":
+        $ref: "../openapi.yaml#/components/responses/UnauthorizedError"
