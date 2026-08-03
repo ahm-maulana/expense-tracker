@@ -4,9 +4,16 @@ import bcrypt from "bcrypt";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	ConflictError,
+	TooManyRequestError,
 	UnauthorizedError,
 } from "../../common/errors/app-error.js";
-import type { RefreshToken, User } from "../../generated/prisma/client.js";
+import { hashToken } from "../../common/utils/hash.js";
+import { generateRandomToken } from "../../common/utils/token.js";
+import type {
+	RefreshToken,
+	User,
+	UserToken,
+} from "../../generated/prisma/client.js";
 import {
 	decodeToken,
 	signAccessToken,
@@ -16,7 +23,9 @@ import {
 import type AuthRepository from "./auth.repository.js";
 import AuthService from "./auth.service.js";
 import type { RefreshTokenPayload } from "./auth.types.js";
+import { sendPasswordResetEmail } from "./auth-email.service.js";
 import type RefreshTokenRepository from "./refresh-token-repository.js";
+import type UserTokenRepository from "./user-token-repository.js";
 
 vi.mock("./auth.repository.ts");
 vi.mock("bcrypt", () => ({
@@ -26,11 +35,15 @@ vi.mock("bcrypt", () => ({
 	},
 }));
 vi.mock("../../lib/jwt.ts");
+vi.mock("../../common/utils/token.ts");
+vi.mock("../../common/utils/hash.ts");
+vi.mock("./auth-email.service.js");
 
 describe("AuthService", () => {
 	let service: AuthService;
 	let authRepositoryMock: AuthRepository;
 	let refreshTokenRepositoryMock: RefreshTokenRepository;
+	let userTokenRepositoryMock: UserTokenRepository;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -48,7 +61,17 @@ describe("AuthService", () => {
 			revoke: vi.fn(),
 		} as unknown as RefreshTokenRepository;
 
-		service = new AuthService(authRepositoryMock, refreshTokenRepositoryMock);
+		userTokenRepositoryMock = {
+			findByTokenHash: vi.fn(),
+			findLatestByUserIdAndType: vi.fn(),
+			create: vi.fn(),
+		} as unknown as UserTokenRepository;
+
+		service = new AuthService(
+			authRepositoryMock,
+			refreshTokenRepositoryMock,
+			userTokenRepositoryMock,
+		);
 	});
 
 	const userDbMock: User = {
@@ -83,6 +106,20 @@ describe("AuthService", () => {
 			expiresAt: new Date("2026-01-07"),
 			revokedAt: null,
 			createdAt: new Date("2026-01-01"),
+			...overrides,
+		};
+	};
+
+	const createMockUserToken = (overrides?: Partial<UserToken>): UserToken => {
+		return {
+			id: randomUUID(),
+			userId: randomUUID(),
+			tokenHash: "hashed-token",
+			type: "PASSWORD_RESET",
+			expiresAt: expect.any(Date),
+			consumedAt: expect.any(Date),
+			revokedAt: expect.any(Date),
+			createdAt: expect.any(Date),
 			...overrides,
 		};
 	};
@@ -236,6 +273,69 @@ describe("AuthService", () => {
 			);
 
 			expect(refreshTokenRepositoryMock.findByJti).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("forgotPassword function", () => {
+		const user = createMockUser({
+			email: "john@example.com",
+		});
+		const userToken = createMockUserToken({
+			userId: user.id,
+		});
+
+		it("should send password reset email", async () => {
+			vi.mocked(authRepositoryMock.findByEmail).mockResolvedValue(user);
+			vi.mocked(
+				userTokenRepositoryMock.findLatestByUserIdAndType,
+			).mockResolvedValue(null);
+			vi.mocked(generateRandomToken).mockReturnValue("raw-token");
+			vi.mocked(hashToken).mockReturnValue("hashed-token");
+			vi.mocked(userTokenRepositoryMock.create).mockResolvedValue(userToken);
+			vi.mocked(sendPasswordResetEmail).mockResolvedValue();
+
+			await service.forgotPassword(user.email);
+
+			expect(authRepositoryMock.findByEmail).toHaveBeenCalledWith(
+				"john@example.com",
+			);
+			expect(
+				userTokenRepositoryMock.findLatestByUserIdAndType,
+			).toHaveBeenCalledWith(user.id, "PASSWORD_RESET", expect.any(Date));
+			expect(generateRandomToken).toHaveBeenCalled();
+			expect(hashToken).toHaveBeenCalledWith("raw-token");
+			expect(userTokenRepositoryMock.create).toHaveBeenCalledWith({
+				userId: user.id,
+				tokenHash: "hashed-token",
+				type: "PASSWORD_RESET",
+				expiresAt: expect.any(Date),
+			});
+			expect(sendPasswordResetEmail).toHaveBeenCalledWith({
+				to: "john@example.com",
+				token: "raw-token",
+			});
+		});
+
+		it("should do nothing when user not found", async () => {
+			vi.mocked(authRepositoryMock.findByEmail).mockResolvedValue(null);
+
+			await service.forgotPassword("john@example.com");
+
+			expect(userTokenRepositoryMock.create).not.toHaveBeenCalled();
+			expect(sendPasswordResetEmail).not.toHaveBeenCalled();
+		});
+
+		it("should throw TooManyRequestError when user is in cool down", async () => {
+			vi.mocked(authRepositoryMock.findByEmail).mockResolvedValue(user);
+			vi.mocked(
+				userTokenRepositoryMock.findLatestByUserIdAndType,
+			).mockResolvedValue(userToken);
+
+			await expect(service.forgotPassword(user.email)).rejects.toThrow(
+				TooManyRequestError,
+			);
+
+			expect(userTokenRepositoryMock.create).not.toHaveBeenCalled();
 		});
 	});
 

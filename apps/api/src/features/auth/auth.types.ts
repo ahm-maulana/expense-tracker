@@ -1,4 +1,5 @@
 import type { UserDto } from "@repo/api-contracts";
+import type { UserTokenType } from "../../generated/prisma/enums.js";
 
 export interface AccessTokenPayload {
 	sub: string;
@@ -21,6 +22,13 @@ export interface CreateRefreshTokenInput {
 	userId: string;
 	expiresAt: Date;
 	revokedAt?: Date;
+}
+
+export interface CreateUserTokenInput {
+	userId: string;
+	tokenHash: string;
+	type: UserTokenType;
+	expiresAt: Date;
 }
 
 export interface LoginResult {

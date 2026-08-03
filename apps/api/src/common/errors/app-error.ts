@@ -39,3 +39,15 @@ export class BadRequestError extends AppError {
 		super(message, 400, "BAD_REQUEST_ERROR");
 	}
 }
+
+export class TooManyRequestError extends AppError {
+	constructor(message: string = "Too Many Request") {
+		super(message, 429, "TOO_MANY_REQUEST_ERROR");
+	}
+}
+
+export class EmailProviderError extends AppError {
+	constructor(message: string = "Failed to send email") {
+		super(message, 500, "INTERNAL_SERVER_ERROR");
+	}
+}

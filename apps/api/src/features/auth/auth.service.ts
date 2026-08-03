@@ -3,8 +3,11 @@ import type { LoginInput, RegisterInput, UserDto } from "@repo/api-contracts";
 import bcrypt from "bcrypt";
 import {
 	ConflictError,
+	TooManyRequestError,
 	UnauthorizedError,
 } from "../../common/errors/app-error.js";
+import { hashToken } from "../../common/utils/hash.js";
+import { generateRandomToken } from "../../common/utils/token.js";
 import type { User } from "../../generated/prisma/client.js";
 import {
 	decodeToken,
@@ -12,18 +15,25 @@ import {
 	signRefreshToken,
 	verifyRefreshToken,
 } from "../../lib/jwt.js";
+import {
+	PASSWORD_RESET_REQUEST_COOLDOWN_MS,
+	PASSWORD_RESET_TOKEN_EXPIRATION_MS,
+} from "./auth.constant.js";
 import type AuthRepository from "./auth.repository.js";
 import type {
 	AccessTokenPayload,
 	LoginResult,
 	RefreshTokenPayload,
 } from "./auth.types.js";
+import { sendPasswordResetEmail } from "./auth-email.service.js";
 import type RefreshTokenRepository from "./refresh-token-repository.js";
+import type UserTokenRepository from "./user-token-repository.js";
 
 class AuthService {
 	constructor(
 		private authRepository: AuthRepository,
 		private refreshTokenRepository: RefreshTokenRepository,
+		private userTokenRepository: UserTokenRepository,
 	) {}
 
 	async register(
@@ -190,6 +200,51 @@ class AuthService {
 
 		// Revoke session
 		await this.refreshTokenRepository.revoke(session.jti);
+	}
+
+	async forgotPassword(email: string): Promise<void> {
+		const existingUser = await this.authRepository.findByEmail(email);
+
+		if (!existingUser) {
+			return;
+		}
+
+		const cooldownStart = new Date(
+			Date.now() - PASSWORD_RESET_REQUEST_COOLDOWN_MS,
+		);
+
+		const isInCooldown =
+			await this.userTokenRepository.findLatestByUserIdAndType(
+				existingUser.id,
+				"PASSWORD_RESET",
+				cooldownStart,
+			);
+
+		if (isInCooldown) {
+			throw new TooManyRequestError(
+				"A reset email was recently sent. Try again in a minute",
+			);
+		}
+
+		const rawToken = generateRandomToken();
+
+		const hashedToken = hashToken(rawToken);
+		const tokenExpiresAt = new Date(
+			Date.now() + PASSWORD_RESET_TOKEN_EXPIRATION_MS,
+		);
+
+		await this.userTokenRepository.create({
+			userId: existingUser.id,
+			tokenHash: hashedToken,
+			type: "PASSWORD_RESET",
+			expiresAt: tokenExpiresAt,
+		});
+
+		// SEND RESET EMAIL
+		await sendPasswordResetEmail({
+			to: existingUser.email,
+			token: rawToken,
+		});
 	}
 
 	private async issueTokens(
