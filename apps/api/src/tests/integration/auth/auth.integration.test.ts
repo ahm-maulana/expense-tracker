@@ -148,6 +148,27 @@ describe("Auth Integration", () => {
 		});
 	});
 
+	describe("POST /api/auth/forgot-password", () => {
+		it("should return 200 and send email if registered", async () => {
+			await createUser({
+				email: "ahmadmaulana4040@gmail.com",
+				name: "Ahmad Maulana",
+				password: "Password123@",
+				confirmPassword: "Password123@",
+			});
+
+			const response = await http.post<ApiResponse<null>>(
+				"/api/auth/forgot-password",
+				{
+					email: "ahmadmaulana4040@gmail.com",
+				},
+			);
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("message");
+		});
+	});
+
 	describe("POST /api/auth/logout", () => {
 		it("should return 204 and revoke the refresh token when the refresh token is valid", async () => {
 			await createUser(validRegisterInput);

@@ -6,11 +6,15 @@ import {
 	ConflictError,
 	UnauthorizedError,
 } from "../../common/errors/app-error.js";
+import { getValidatedBody } from "../../common/utils/request.js";
 import AuthController from "./auth.controller.js";
 import type AuthService from "./auth.service.js";
 import type { LoginResult } from "./auth.types.js";
 
 vi.mock("./auth.service.ts");
+vi.mock("../../common/utils/request.ts", () => ({
+	getValidatedBody: vi.fn(),
+}));
 
 function createMockUser(overrides?: Partial<UserDto>): UserDto {
 	return {
@@ -59,6 +63,7 @@ describe("AuthController", () => {
 			register: vi.fn(),
 			login: vi.fn(),
 			refresh: vi.fn(),
+			forgotPassword: vi.fn(),
 			logout: vi.fn(),
 		} as unknown as AuthService;
 
@@ -227,6 +232,24 @@ describe("AuthController", () => {
 			expect(mockRes.cookie).not.toHaveBeenCalled();
 			expect(mockRes.status).not.toHaveBeenCalled();
 			expect(mockRes.json).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("forgotPassword function", () => {
+		it("should return 200 and send email if email registered", async () => {
+			const input = {
+				email: "john@example.com",
+			};
+			vi.mocked(getValidatedBody).mockReturnValue(input);
+			vi.mocked(mockService.forgotPassword).mockResolvedValue();
+
+			await controller.forgotPassword(mockReq, mockRes);
+
+			expect(mockRes.status).toHaveBeenCalledWith(200);
+			expect(mockRes.json).toHaveBeenCalledWith({
+				data: null,
+				message: expect.stringContaining("password reset link"),
+			});
 		});
 	});
 

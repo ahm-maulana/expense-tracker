@@ -1,5 +1,6 @@
 import type {
 	ApiResponse,
+	ForgotPasswordInput,
 	LoginInput,
 	LoginResponse,
 	RegisterInput,
@@ -7,6 +8,7 @@ import type {
 } from "@repo/api-contracts";
 import type { NextFunction, Request, Response } from "express";
 import ms, { type StringValue } from "ms";
+import { getValidatedBody } from "../../common/utils/request.js";
 import { env } from "../../config/env.js";
 import type AuthService from "./auth.service.js";
 
@@ -106,6 +108,18 @@ class AuthController {
 
 			next(error);
 		}
+	};
+
+	forgotPassword = async (req: Request, res: Response<ApiResponse<null>>) => {
+		const { email } = getValidatedBody<ForgotPasswordInput>(req);
+
+		await this.service.forgotPassword(email);
+
+		res.status(200).json({
+			data: null,
+			message:
+				"If an account with that email exists, a password reset link has been sent.",
+		});
 	};
 
 	logout = async (req: Request, res: Response, _next: NextFunction) => {
