@@ -1,7 +1,13 @@
 import { randomUUID } from "node:crypto";
-import type { LoginInput, RegisterInput, UserDto } from "@repo/api-contracts";
+import type {
+	LoginInput,
+	RegisterInput,
+	ResetPasswordInput,
+	UserDto,
+} from "@repo/api-contracts";
 import bcrypt from "bcrypt";
 import {
+	BadRequestError,
 	ConflictError,
 	TooManyRequestError,
 	UnauthorizedError,
@@ -245,6 +251,32 @@ class AuthService {
 			to: existingUser.email,
 			token: rawToken,
 		});
+	}
+
+	async resetPassword(data: ResetPasswordInput): Promise<void> {
+		const hashedToken = hashToken(data.token);
+
+		const userToken =
+			await this.userTokenRepository.findByTokenHash(hashedToken);
+
+		if (
+			!userToken ||
+			userToken.revokedAt ||
+			userToken.consumedAt ||
+			userToken.expiresAt <= new Date()
+		) {
+			throw new BadRequestError("Invalid or expired reset token.");
+		}
+
+		const existingUser = await this.authRepository.findById(userToken.userId);
+
+		if (!existingUser) {
+			throw new BadRequestError("Invalid or expired reset token.");
+		}
+
+		const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+
+		await this.authRepository.updatePassword(existingUser.id, hashedPassword);
 	}
 
 	private async issueTokens(

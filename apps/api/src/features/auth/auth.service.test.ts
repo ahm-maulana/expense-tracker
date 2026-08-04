@@ -3,6 +3,7 @@ import type { LoginInput, RegisterInput } from "@repo/api-contracts";
 import bcrypt from "bcrypt";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+	BadRequestError,
 	ConflictError,
 	TooManyRequestError,
 	UnauthorizedError,
@@ -20,6 +21,7 @@ import {
 	signRefreshToken,
 	verifyRefreshToken,
 } from "../../lib/jwt.js";
+import { PASSWORD_RESET_TOKEN_EXPIRATION_MS } from "./auth.constant.js";
 import type AuthRepository from "./auth.repository.js";
 import AuthService from "./auth.service.js";
 import type { RefreshTokenPayload } from "./auth.types.js";
@@ -52,6 +54,7 @@ describe("AuthService", () => {
 			create: vi.fn(),
 			findByEmail: vi.fn(),
 			findById: vi.fn(),
+			updatePassword: vi.fn(),
 		} as unknown as AuthRepository;
 
 		refreshTokenRepositoryMock = {
@@ -336,6 +339,80 @@ describe("AuthService", () => {
 			);
 
 			expect(userTokenRepositoryMock.create).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("resetPassword function", () => {
+		const user = createMockUser({
+			email: "john@example.com",
+		});
+		const resetPasswordInput = {
+			token: "token",
+			newPassword: "NewPassword123@",
+		};
+		const userToken = createMockUserToken({
+			userId: user.id,
+			createdAt: new Date(),
+			expiresAt: new Date(Date.now() + PASSWORD_RESET_TOKEN_EXPIRATION_MS),
+			consumedAt: null,
+			revokedAt: null,
+		});
+
+		it("should reset password when the token is valid", async () => {
+			vi.mocked(hashToken).mockReturnValue("hashed-token");
+			vi.mocked(userTokenRepositoryMock.findByTokenHash).mockResolvedValue(
+				userToken,
+			);
+			vi.mocked(authRepositoryMock.findById).mockResolvedValue(user);
+			vi.mocked(bcrypt.hash).mockResolvedValue("hashed-password" as never);
+			vi.mocked(authRepositoryMock.updatePassword).mockResolvedValue({
+				...user,
+				passwordHash: "hashed-password",
+			});
+
+			await service.resetPassword(resetPasswordInput);
+
+			expect(hashToken).toHaveBeenCalledWith("token");
+			expect(userTokenRepositoryMock.findByTokenHash).toHaveBeenCalledWith(
+				"hashed-token",
+			);
+			expect(authRepositoryMock.findById).toHaveBeenCalledWith(user.id);
+			expect(bcrypt.hash).toHaveBeenCalledWith("NewPassword123@", 10);
+			expect(authRepositoryMock.updatePassword).toHaveBeenCalledWith(
+				user.id,
+				"hashed-password",
+			);
+		});
+
+		it("should throw BadRequestError when token is invalid", async () => {
+			vi.mocked(hashToken).mockReturnValue("hashed-token");
+			vi.mocked(userTokenRepositoryMock.findByTokenHash).mockResolvedValue(
+				null,
+			);
+
+			await expect(service.resetPassword(resetPasswordInput)).rejects.toThrow(
+				BadRequestError,
+			);
+
+			expect(hashToken).toHaveBeenCalledWith("token");
+			expect(userTokenRepositoryMock.findByTokenHash).toHaveBeenCalledWith(
+				"hashed-token",
+			);
+			expect(authRepositoryMock.updatePassword).not.toHaveBeenCalled();
+		});
+
+		it("should throw BadRequestError when user not found", async () => {
+			vi.mocked(hashToken).mockReturnValue("hashed-token");
+			vi.mocked(userTokenRepositoryMock.findByTokenHash).mockResolvedValue(
+				userToken,
+			);
+			vi.mocked(authRepositoryMock.findById).mockResolvedValue(null);
+
+			await expect(service.resetPassword(resetPasswordInput)).rejects.toThrow(
+				BadRequestError,
+			);
+
+			expect(authRepositoryMock.updatePassword).not.toHaveBeenCalled();
 		});
 	});
 
