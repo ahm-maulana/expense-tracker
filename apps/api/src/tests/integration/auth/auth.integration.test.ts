@@ -4,7 +4,9 @@ import type {
 	RegisterResponse,
 } from "@repo/api-contracts";
 import { describe, expect, it } from "vitest";
+import { PASSWORD_RESET_TOKEN_EXPIRATION_MS } from "../../../features/auth/auth.constant.js";
 import { createUser } from "../../factories/user.factory.js";
+import { createUserToken } from "../../factories/user-token.factory.js";
 import {
 	validLoginInput,
 	validRegisterInput,
@@ -166,6 +168,56 @@ describe("Auth Integration", () => {
 
 			expect(response.status).toBe(200);
 			expect(response.body).toHaveProperty("message");
+		});
+	});
+
+	describe("POST /api/auth/reset-password", async () => {
+		it("should return 200 and reset the password when token is valid", async () => {
+			const user = await createUser({
+				email: "ahmadmaulana4040@gmail.com",
+				name: "Ahmad Maulana",
+				password: "Password123@",
+				confirmPassword: "Password123@",
+			});
+			await createUserToken(user.id, "random-token", {
+				expiresAt: new Date(Date.now() + PASSWORD_RESET_TOKEN_EXPIRATION_MS),
+			});
+
+			const response = await http.post("/api/auth/reset-password", {
+				token: "random-token",
+				newPassword: "NewPassword123@",
+			});
+
+			const responseLogin = await http.post("/api/auth/login", {
+				email: "ahmadmaulana4040@gmail.com",
+				password: "NewPassword123@",
+			});
+
+			expect(response.status).toBe(200);
+			expect(responseLogin.status).toBe(200);
+		});
+
+		it("should return 400 when token is invalid", async () => {
+			const user = await createUser({
+				email: "ahmadmaulana4040@gmail.com",
+				name: "Ahmad Maulana",
+				password: "Password123@",
+				confirmPassword: "Password123@",
+			});
+
+			await createUserToken(user.id, "random-token", {
+				expiresAt: new Date(Date.now() - 1000),
+			});
+
+			const response = await http.post<ApiResponse<null>>(
+				"/api/auth/reset-password",
+				{
+					token: "random-token",
+					newPassword: "NewPassword123@",
+				},
+			);
+
+			expect(response.status).toBe(400);
 		});
 	});
 

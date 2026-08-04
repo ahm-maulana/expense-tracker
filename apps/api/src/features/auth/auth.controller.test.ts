@@ -64,6 +64,7 @@ describe("AuthController", () => {
 			login: vi.fn(),
 			refresh: vi.fn(),
 			forgotPassword: vi.fn(),
+			resetPassword: vi.fn(),
 			logout: vi.fn(),
 		} as unknown as AuthService;
 
@@ -249,6 +250,25 @@ describe("AuthController", () => {
 			expect(mockRes.json).toHaveBeenCalledWith({
 				data: null,
 				message: expect.stringContaining("password reset link"),
+			});
+		});
+	});
+
+	describe("resetPassword function", () => {
+		it("should return 200 and reset the password", async () => {
+			const input = {
+				token: "token",
+				newPassword: "NewPassword123@",
+			};
+			vi.mocked(getValidatedBody).mockReturnValue(input);
+			vi.mocked(mockService.resetPassword).mockResolvedValue();
+			await controller.resetPassword(mockReq, mockRes);
+
+			expect(mockService.resetPassword).toHaveBeenCalledWith(input);
+			expect(mockRes.status).toHaveBeenCalledWith(200);
+			expect(mockRes.json).toHaveBeenCalledWith({
+				data: null,
+				message: "Password has been reset successfully.",
 			});
 		});
 	});

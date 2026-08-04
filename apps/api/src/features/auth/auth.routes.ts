@@ -2,6 +2,7 @@ import {
 	forgotPasswordSchema,
 	loginSchema,
 	registerSchema,
+	resetPasswordSchema,
 } from "@repo/api-contracts";
 import { Router } from "express";
 import { validateBody } from "../../common/middleware/validation.js";
@@ -20,6 +21,12 @@ export default function authRoutes(controller: AuthController): Router {
 		"/forgot-password",
 		validateBody(forgotPasswordSchema),
 		controller.forgotPassword,
+	);
+
+	router.post(
+		"/reset-password",
+		validateBody(resetPasswordSchema),
+		controller.resetPassword,
 	);
 
 	router.post("/logout", controller.logout);

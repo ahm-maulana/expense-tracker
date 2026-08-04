@@ -49,8 +49,8 @@ Complete the Authentication feature.
 - [x] Create POST /auth/login endpoint
 - [x] Create POST /auth/refresh endpoint
 - [x] Create POST /auth/logout endpoint
-- [ ] Create POST /auth/forgot-password endpoint
-- [ ] Create POST /auth/reset-password endpoint
+- [x] Create POST /auth/forgot-password endpoint
+- [x] Create POST /auth/reset-password endpoint
 
 ### Frontend
 
@@ -63,8 +63,8 @@ Complete the Authentication feature.
 
 #### Backend
 
-- [ ] Unit tests
-- [ ] Integration tests
+- [x] Unit tests
+- [x] Integration tests
 
 #### Frontend
 
@@ -82,8 +82,8 @@ Complete the Authentication feature.
 
 #### Shared
 
-- [ ] Define API contract
-- [ ] Add shared validation schema
+- [x] Define API contract
+- [x] Add shared validation schema
 
 #### Backend
 

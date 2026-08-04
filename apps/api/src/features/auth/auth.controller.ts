@@ -5,6 +5,7 @@ import type {
 	LoginResponse,
 	RegisterInput,
 	RegisterResponse,
+	ResetPasswordInput,
 } from "@repo/api-contracts";
 import type { NextFunction, Request, Response } from "express";
 import ms, { type StringValue } from "ms";
@@ -119,6 +120,17 @@ class AuthController {
 			data: null,
 			message:
 				"If an account with that email exists, a password reset link has been sent.",
+		});
+	};
+
+	resetPassword = async (req: Request, res: Response<ApiResponse<null>>) => {
+		const data = getValidatedBody<ResetPasswordInput>(req);
+
+		await this.service.resetPassword(data);
+
+		res.status(200).json({
+			data: null,
+			message: "Password has been reset successfully.",
 		});
 	};
 
