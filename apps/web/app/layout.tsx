@@ -1,6 +1,18 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Geist, Geist_Mono } from "next/font/google";
+import { ThemeProvider } from "#components/theme-provider";
+import { Toaster } from "#components/ui/toast";
+import QueryProvider from "#lib/query-client.js";
+import { cn } from "#lib/utils";
+
+const geistMonoHeading = Geist_Mono({
+	subsets: ["latin"],
+	variable: "--font-heading",
+});
+
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 const geistSans = localFont({
 	src: "./fonts/GeistVF.woff",
@@ -22,9 +34,21 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="en">
+		<html
+			lang="en"
+			className={cn("font-sans", geist.variable, geistMonoHeading.variable)}
+			suppressHydrationWarning
+		>
 			<body className={`${geistSans.variable} ${geistMono.variable}`}>
-				{children}
+				<ThemeProvider
+					attribute="class"
+					defaultTheme="system"
+					enableSystem
+					disableTransitionOnChange
+				>
+					<QueryProvider>{children}</QueryProvider>
+					<Toaster />
+				</ThemeProvider>
 			</body>
 		</html>
 	);
