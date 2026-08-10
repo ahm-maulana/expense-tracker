@@ -98,7 +98,7 @@ ForgotPasswordResponse:
     - message
   properties:
     data:
-      type: null
+      type: "null"
     message:
       type: string
       example: If an account with that email exists, a password reset link has been sent.
@@ -107,14 +107,14 @@ ResetPasswordRequest:
   type: object
   required:
     - token
-    - password
+    - newPassword
     - confirmPassword
   properties:
     token:
       type: string
       format: JWT
       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-    password:
+    newPassword:
       type: string
       format: password
       example: Password123@
@@ -129,7 +129,19 @@ ResetPasswordResponse:
     - message
   properties:
     data:
-      type: null
+      type: "null"
     message:
       type: string
       example: Password has been reset successfully.
+
+ValidateResetTokenResponse:
+  type: object
+  required:
+    - data
+    - message
+  properties:
+    data:
+      type: "null"
+    message:
+      type: string
+      example: Reset token is valid

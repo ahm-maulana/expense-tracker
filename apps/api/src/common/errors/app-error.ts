@@ -41,7 +41,10 @@ export class BadRequestError extends AppError {
 }
 
 export class TooManyRequestError extends AppError {
-	constructor(message: string = "Too Many Request") {
+	constructor(
+		message: string = "Too Many Request",
+		public readonly retryAfter?: number,
+	) {
 		super(message, 429, "TOO_MANY_REQUEST_ERROR");
 	}
 }

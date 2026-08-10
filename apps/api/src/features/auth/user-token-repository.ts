@@ -40,6 +40,17 @@ class UserTokenRepository {
 			data,
 		});
 	}
+
+	async markAsUsed(id: string): Promise<UserToken> {
+		return this.prisma.userToken.update({
+			where: {
+				id,
+			},
+			data: {
+				consumedAt: new Date(),
+			},
+		});
+	}
 }
 
 export default UserTokenRepository;

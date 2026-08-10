@@ -9,7 +9,10 @@ import type {
 } from "@repo/api-contracts";
 import type { NextFunction, Request, Response } from "express";
 import ms, { type StringValue } from "ms";
-import { getValidatedBody } from "../../common/utils/request.js";
+import {
+	getValidatedBody,
+	getValidatedQuery,
+} from "../../common/utils/request.js";
 import { env } from "../../config/env.js";
 import type AuthService from "./auth.service.js";
 
@@ -131,6 +134,20 @@ class AuthController {
 		res.status(200).json({
 			data: null,
 			message: "Password has been reset successfully.",
+		});
+	};
+
+	verifyResetPasswordToken = async (
+		req: Request,
+		res: Response<ApiResponse<null>>,
+	) => {
+		const { token } = getValidatedQuery<{ token: string }>(req);
+
+		await this.service.verifyResetPasswordToken(token);
+
+		res.status(200).json({
+			data: null,
+			message: "Reset token is valid.",
 		});
 	};
 

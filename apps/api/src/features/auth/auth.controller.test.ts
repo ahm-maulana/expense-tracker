@@ -1,29 +1,23 @@
-import { randomUUID } from "node:crypto";
-import type { UserDto } from "@repo/api-contracts";
 import type { CookieOptions, NextFunction, Request, Response } from "express";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	ConflictError,
 	UnauthorizedError,
 } from "../../common/errors/app-error.js";
-import { getValidatedBody } from "../../common/utils/request.js";
+import {
+	getValidatedBody,
+	getValidatedQuery,
+} from "../../common/utils/request.js";
 import AuthController from "./auth.controller.js";
+import { createMockUser } from "./auth.mocks.js";
 import type AuthService from "./auth.service.js";
 import type { LoginResult } from "./auth.types.js";
 
 vi.mock("./auth.service.ts");
 vi.mock("../../common/utils/request.ts", () => ({
 	getValidatedBody: vi.fn(),
+	getValidatedQuery: vi.fn(),
 }));
-
-function createMockUser(overrides?: Partial<UserDto>): UserDto {
-	return {
-		id: randomUUID(),
-		email: "john@example.com",
-		name: "John Doe",
-		...overrides,
-	};
-}
 
 function createMockCookieOptions(
 	overrides?: Partial<CookieOptions>,
@@ -65,6 +59,7 @@ describe("AuthController", () => {
 			refresh: vi.fn(),
 			forgotPassword: vi.fn(),
 			resetPassword: vi.fn(),
+			verifyResetPasswordToken: vi.fn(),
 			logout: vi.fn(),
 		} as unknown as AuthService;
 
@@ -81,7 +76,11 @@ describe("AuthController", () => {
 				password: "Secret123@",
 				confirmPassword: "Secret123@",
 			};
-			vi.mocked(mockService.register).mockResolvedValue(user);
+			vi.mocked(mockService.register).mockResolvedValue({
+				id: user.id,
+				email: user.email,
+				name: user.name,
+			});
 
 			await controller.register(mockReq, mockRes, mockNext);
 
@@ -126,7 +125,11 @@ describe("AuthController", () => {
 	describe("login function", () => {
 		const user = createMockUser();
 		const loginResult: LoginResult = {
-			user,
+			user: {
+				id: user.id,
+				email: user.email,
+				name: user.name,
+			},
 			accessToken: "access-token",
 			refreshToken: "refresh-token",
 		};
@@ -154,7 +157,11 @@ describe("AuthController", () => {
 			expect(mockRes.status).toHaveBeenCalledWith(200);
 			expect(mockRes.json).toHaveBeenCalledWith({
 				data: {
-					user,
+					user: {
+						id: user.id,
+						email: user.email,
+						name: user.name,
+					},
 					accessToken: "access-token",
 				},
 			});
@@ -209,7 +216,11 @@ describe("AuthController", () => {
 			expect(mockRes.status).toHaveBeenCalledWith(200);
 			expect(mockRes.json).toHaveBeenCalledWith({
 				data: {
-					user,
+					user: {
+						id: user.id,
+						email: user.email,
+						name: user.name,
+					},
 					accessToken: "access-token",
 				},
 			});
@@ -270,6 +281,23 @@ describe("AuthController", () => {
 				data: null,
 				message: "Password has been reset successfully.",
 			});
+		});
+	});
+
+	describe("verifyResetPasswordToken function", () => {
+		it("should return 200 when the reset token is valid", async () => {
+			const input = {
+				token: "random-token",
+			};
+			vi.mocked(getValidatedQuery).mockReturnValue(input);
+			vi.mocked(mockService.verifyResetPasswordToken).mockResolvedValue();
+
+			await controller.verifyResetPasswordToken(mockReq, mockRes);
+
+			expect(mockRes.status).toHaveBeenCalledWith(200);
+			expect(mockService.verifyResetPasswordToken).toHaveBeenCalledWith(
+				"random-token",
+			);
 		});
 	});
 

@@ -22,6 +22,7 @@ import {
 	authRoutes,
 	RefreshTokenRepository,
 } from "./features/auth/index.js";
+import UserTokenService from "./features/auth/user-token.service.js";
 import UserTokenRepository from "./features/auth/user-token-repository.js";
 import CategoryController from "./features/category/category.controller.js";
 import CategoryRepository from "./features/category/category.repository.js";
@@ -43,10 +44,11 @@ const categoryRepository = new CategoryRepository(prisma);
 const userTokenRepository = new UserTokenRepository(prisma);
 
 // Services
+const userTokenService = new UserTokenService(userTokenRepository);
 const authService = new AuthService(
 	authRepository,
 	refreshTokenRepository,
-	userTokenRepository,
+	userTokenService,
 );
 const userService = new UserService(userRepository);
 const categoryService = new CategoryService(categoryRepository);

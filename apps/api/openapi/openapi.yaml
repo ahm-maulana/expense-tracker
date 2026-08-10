@@ -20,6 +20,8 @@ paths:
     $ref: "./paths/auth.yaml#/forgotPassword"
   /api/auth/reset-password:
     $ref: "./paths/auth.yaml#/resetPassword"
+  /api/auth/reset-password/verify:
+    $ref: "./paths/auth.yaml#/verifyResetPasswordToken"
 
   /api/categories:
     $ref: "./paths/category.yaml#/categories"
@@ -56,6 +58,8 @@ components:
       $ref: "./schemas/auth.yaml#/ResetPasswordRequest"
     ResetPasswordResponse:
       $ref: "./schemas/auth.yaml#/ResetPasswordResponse"
+    ValidateResetTokenResponse:
+      $ref: "./schemas/auth.yaml#/ValidateResetTokenResponse"
 
     CategoryType:
       $ref: "./schemas/category.yaml#/CategoryType"
@@ -126,6 +130,21 @@ components:
             $ref: "./schemas/common.yaml#/ErrorResponse"
           example:
             message: Unauthorized
+    TooManyRequestError:
+      description: Too many requests
+      headers:
+        Retry-After:
+          description: Number of seconds to wait before retrying the request.
+          schema:
+            type: integer
+            minimum: 1
+          example: 42
+      content:
+        application/json:
+          schema:
+            $ref: "./schemas/common.yaml#/ErrorResponse"
+          example:
+            message: Too many requests
 
   securitySchemes:
     BearerAuth:
