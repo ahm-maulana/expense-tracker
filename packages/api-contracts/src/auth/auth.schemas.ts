@@ -28,12 +28,23 @@ export const forgotPasswordSchema = z.object({
 	email: z.email("Invalid email address"),
 });
 
-export const resetPasswordSchema = z.object({
+export const tokenSchema = z.object({
 	token: z.string().min(1, "Token is required"),
-	newPassword: passwordSchema,
 });
+
+export const resetPasswordSchema = z
+	.object({
+		token: z.string().min(1, "Token is required"),
+		newPassword: passwordSchema,
+		confirmPassword: z.string(),
+	})
+	.refine((data) => data.newPassword === data.confirmPassword, {
+		path: ["confirmPassword"],
+		error: "Password do not match",
+	});
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type TokenInput = z.infer<typeof tokenSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
