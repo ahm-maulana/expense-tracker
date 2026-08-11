@@ -1,3 +1,5 @@
+import { ApiError } from "./api-error";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_URL ?? "http://localhost:3001";
 
 interface ApiClientOptions extends Omit<RequestInit, "body"> {
@@ -5,21 +7,10 @@ interface ApiClientOptions extends Omit<RequestInit, "body"> {
 	headers?: Record<string, string>;
 }
 
-class ApiError extends Error {
-	constructor(
-		public status: number,
-		public data: unknown,
-		message: string,
-	) {
-		super(message);
-		this.name = "ApiError";
-	}
-}
-
 export async function apiClient<T>(path: string, init: ApiClientOptions = {}) {
 	const { body, headers = {}, ...restInit } = init;
 
-	const url = `${API_BASE_URL}${path}`;
+	const url = `${API_BASE_URL}/api${path}`;
 
 	const requestInit: RequestInit = {
 		...restInit,
@@ -48,6 +39,7 @@ export async function apiClient<T>(path: string, init: ApiClientOptions = {}) {
 				typeof data === "object" && "message" in data
 					? (data.message as string)
 					: response.statusText,
+				response.headers,
 			);
 		}
 
