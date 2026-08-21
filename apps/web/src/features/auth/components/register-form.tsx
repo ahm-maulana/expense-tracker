@@ -77,7 +77,7 @@ export function RegisterForm({
 							<AlertTitle>{form.formState.errors.root.message}</AlertTitle>
 						</Alert>
 					)}
-					<form onSubmit={form.handleSubmit(onSubmit)}>
+					<form onSubmit={form.handleSubmit(onSubmit)} noValidate>
 						<FieldGroup>
 							<Controller
 								name="name"

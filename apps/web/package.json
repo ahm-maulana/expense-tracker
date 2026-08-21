@@ -9,7 +9,9 @@
 		"start": "next start",
 		"lint": "eslint --max-warnings 0",
 		"check-types": "next typegen && tsc --noEmit",
-		"test": "vitest"
+		"test": "vitest",
+		"test:unit": "vitest --project unit",
+		"test:integration": "vitest --project integration"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.6.0",
@@ -44,6 +46,7 @@
 		"@vitejs/plugin-react": "^6.0.5",
 		"eslint": "^9.39.1",
 		"jsdom": "^29.1.1",
+		"msw": "^2.15.0",
 		"vitest": "^4.1.10"
 	}
 }
