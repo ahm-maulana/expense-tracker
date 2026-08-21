@@ -1,5 +1,5 @@
 import z from "zod";
-import { passwordSchema } from "../common/schemas.js";
+import { emailSchema, passwordSchema } from "../common/schemas.js";
 
 export const registerSchema = z
 	.object({
@@ -8,9 +8,7 @@ export const registerSchema = z
 			.trim()
 			.min(2, "Name must be at least 2 characters")
 			.max(100, "Name must be at most 100 characters"),
-		email: z
-			.email("Invalid email address")
-			.transform((email) => email.toLowerCase()),
+		email: emailSchema,
 		password: passwordSchema,
 		confirmPassword: z.string(),
 	})
@@ -20,12 +18,12 @@ export const registerSchema = z
 	});
 
 export const loginSchema = z.object({
-	email: z.email("Invalid email address"),
+	email: emailSchema,
 	password: z.string(),
 });
 
 export const forgotPasswordSchema = z.object({
-	email: z.email("Invalid email address"),
+	email: emailSchema,
 });
 
 export const tokenSchema = z.object({
