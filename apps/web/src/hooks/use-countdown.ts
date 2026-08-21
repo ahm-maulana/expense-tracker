@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 type Props = {
-	initialSeconds: number;
+	initialSeconds?: number;
 };
 
 export function useCountdown({ initialSeconds = 60 }: Props) {
@@ -16,7 +16,7 @@ export function useCountdown({ initialSeconds = 60 }: Props) {
 			setRemaining((current) => current - 1);
 		}, 1000);
 
-		return () => window.clearInterval(timeoutId);
+		return () => window.clearTimeout(timeoutId);
 	}, [remaining]);
 
 	const restart = useCallback(() => {
