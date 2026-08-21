@@ -13,6 +13,15 @@
 - [ ] Forgot password
 - [ ] Reset password
 
+#### Technical Improvement
+
+- [ ] Fix import problem after updating api-contracts package.json and tsconfig.json
+- [ ] Refactor API response for ConflictError to include errors field
+- [ ] Add 429 Too Many Request response for forgot password Openapi documentation
+- [ ] Add retry after in the TooManyRequest error
+
+---
+
 ### Category
 
 #### MVP

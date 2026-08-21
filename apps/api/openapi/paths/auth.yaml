@@ -160,6 +160,8 @@ forgotPassword:
               errors:
                 email:
                   - Invalid email address
+      "429":
+        $ref: "../openapi.yaml#/components/responses/TooManyRequestError"
 
 resetPassword:
   post:
@@ -199,3 +201,35 @@ resetPassword:
                 summary: Invalid reset token
                 value:
                   message: Invalid or expired reset token.
+
+verifyResetPasswordToken:
+  get:
+    tags:
+      - Authentication
+    summary: verify password reset token
+    description: Checks whether the provided password reset token is valid and can be used to reset the user's password.
+    parameters:
+      - name: token
+        in: query
+        required: true
+        schema:
+          type: string
+          minimum: 1
+          example: Gp947HXYNCVP0TvhMem1pLkxJKBT4ZeFCIAi2fKgE1Y
+    security:
+      - BearerAuth: []
+    responses:
+      "200":
+        description: Reset token is valid
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ValidateResetTokenResponse"
+      "400":
+        description: Reset token is invalid or expired
+        content:
+          application/json:
+            schema:
+              $ref: "../openapi.yaml#/components/schemas/ValidateResetTokenResponse"
+            example:
+              message: Invalid or expired reset token.

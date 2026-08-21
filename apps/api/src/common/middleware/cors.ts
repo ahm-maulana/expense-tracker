@@ -10,4 +10,6 @@ export const corsOptions: CorsOptions = {
 			callback(new Error("Blocked by CORS"));
 		}
 	},
+	credentials: true,
+	exposedHeaders: ["Retry-After"],
 };

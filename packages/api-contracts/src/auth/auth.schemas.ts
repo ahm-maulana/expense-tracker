@@ -1,5 +1,5 @@
 import z from "zod";
-import { passwordSchema } from "../common/schemas.js";
+import { emailSchema, passwordSchema } from "../common/schemas.js";
 
 export const registerSchema = z
 	.object({
@@ -8,9 +8,7 @@ export const registerSchema = z
 			.trim()
 			.min(2, "Name must be at least 2 characters")
 			.max(100, "Name must be at most 100 characters"),
-		email: z
-			.email("Invalid email address")
-			.transform((email) => email.toLowerCase()),
+		email: emailSchema,
 		password: passwordSchema,
 		confirmPassword: z.string(),
 	})
@@ -20,20 +18,31 @@ export const registerSchema = z
 	});
 
 export const loginSchema = z.object({
-	email: z.email("Invalid email address"),
+	email: emailSchema,
 	password: z.string(),
 });
 
 export const forgotPasswordSchema = z.object({
-	email: z.email("Invalid email address"),
+	email: emailSchema,
 });
 
-export const resetPasswordSchema = z.object({
+export const tokenSchema = z.object({
 	token: z.string().min(1, "Token is required"),
-	newPassword: passwordSchema,
 });
+
+export const resetPasswordSchema = z
+	.object({
+		token: z.string().min(1, "Token is required"),
+		newPassword: passwordSchema,
+		confirmPassword: z.string(),
+	})
+	.refine((data) => data.newPassword === data.confirmPassword, {
+		path: ["confirmPassword"],
+		error: "Password do not match",
+	});
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type TokenInput = z.infer<typeof tokenSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

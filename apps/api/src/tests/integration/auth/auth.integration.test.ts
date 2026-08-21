@@ -171,7 +171,7 @@ describe("Auth Integration", () => {
 		});
 	});
 
-	describe("POST /api/auth/reset-password", async () => {
+	describe("POST /api/auth/reset-password", () => {
 		it("should return 200 and reset the password when token is valid", async () => {
 			const user = await createUser({
 				email: "ahmadmaulana4040@gmail.com",
@@ -186,6 +186,7 @@ describe("Auth Integration", () => {
 			const response = await http.post("/api/auth/reset-password", {
 				token: "random-token",
 				newPassword: "NewPassword123@",
+				confirmPassword: "NewPassword123@",
 			});
 
 			const responseLogin = await http.post("/api/auth/login", {
@@ -218,6 +219,21 @@ describe("Auth Integration", () => {
 			);
 
 			expect(response.status).toBe(400);
+		});
+	});
+
+	describe("GET /api/auth/reset-password/verify", () => {
+		it("should return 200 when token is valid", async () => {
+			const user = await createUser();
+			await createUserToken(user.id, "random-token", {
+				expiresAt: new Date(Date.now() + PASSWORD_RESET_TOKEN_EXPIRATION_MS),
+			});
+
+			const response = await http.get<ApiResponse<null>>(
+				"/api/auth/reset-password/verify?token=random-token",
+			);
+
+			expect(response.status).toBe(200);
 		});
 	});
 

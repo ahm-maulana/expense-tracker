@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "#components/theme-provider";
-import { Toaster } from "#components/ui/toast";
-import QueryProvider from "#lib/query-client.js";
-import { cn } from "#lib/utils";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/toast";
+import QueryProvider from "@/lib/query-client";
+import { cn } from "@/lib/utils";
 
 const geistMonoHeading = Geist_Mono({
 	subsets: ["latin"],

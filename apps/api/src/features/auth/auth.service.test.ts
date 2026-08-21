@@ -8,8 +8,6 @@ import {
 	TooManyRequestError,
 	UnauthorizedError,
 } from "../../common/errors/app-error.js";
-import { hashToken } from "../../common/utils/hash.js";
-import { generateRandomToken } from "../../common/utils/token.js";
 import type {
 	RefreshToken,
 	User,
@@ -27,7 +25,7 @@ import AuthService from "./auth.service.js";
 import type { RefreshTokenPayload } from "./auth.types.js";
 import { sendPasswordResetEmail } from "./auth-email.service.js";
 import type RefreshTokenRepository from "./refresh-token-repository.js";
-import type UserTokenRepository from "./user-token-repository.js";
+import type UserTokenService from "./user-token.service.js";
 
 vi.mock("./auth.repository.ts");
 vi.mock("bcrypt", () => ({
@@ -45,7 +43,7 @@ describe("AuthService", () => {
 	let service: AuthService;
 	let authRepositoryMock: AuthRepository;
 	let refreshTokenRepositoryMock: RefreshTokenRepository;
-	let userTokenRepositoryMock: UserTokenRepository;
+	let userTokenServiceMock: UserTokenService;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -64,16 +62,17 @@ describe("AuthService", () => {
 			revoke: vi.fn(),
 		} as unknown as RefreshTokenRepository;
 
-		userTokenRepositoryMock = {
-			findByTokenHash: vi.fn(),
-			findLatestByUserIdAndType: vi.fn(),
+		userTokenServiceMock = {
+			getEmailCooldown: vi.fn(),
 			create: vi.fn(),
-		} as unknown as UserTokenRepository;
+			verify: vi.fn(),
+			consume: vi.fn(),
+		} as unknown as UserTokenService;
 
 		service = new AuthService(
 			authRepositoryMock,
 			refreshTokenRepositoryMock,
-			userTokenRepositoryMock,
+			userTokenServiceMock,
 		);
 	});
 
@@ -289,12 +288,11 @@ describe("AuthService", () => {
 
 		it("should send password reset email", async () => {
 			vi.mocked(authRepositoryMock.findByEmail).mockResolvedValue(user);
-			vi.mocked(
-				userTokenRepositoryMock.findLatestByUserIdAndType,
-			).mockResolvedValue(null);
-			vi.mocked(generateRandomToken).mockReturnValue("raw-token");
-			vi.mocked(hashToken).mockReturnValue("hashed-token");
-			vi.mocked(userTokenRepositoryMock.create).mockResolvedValue(userToken);
+			vi.mocked(userTokenServiceMock.getEmailCooldown).mockResolvedValue(0);
+			vi.mocked(userTokenServiceMock.create).mockResolvedValue({
+				token: "raw-token",
+				userToken,
+			});
 			vi.mocked(sendPasswordResetEmail).mockResolvedValue();
 
 			await service.forgotPassword(user.email);
@@ -302,17 +300,14 @@ describe("AuthService", () => {
 			expect(authRepositoryMock.findByEmail).toHaveBeenCalledWith(
 				"john@example.com",
 			);
-			expect(
-				userTokenRepositoryMock.findLatestByUserIdAndType,
-			).toHaveBeenCalledWith(user.id, "PASSWORD_RESET", expect.any(Date));
-			expect(generateRandomToken).toHaveBeenCalled();
-			expect(hashToken).toHaveBeenCalledWith("raw-token");
-			expect(userTokenRepositoryMock.create).toHaveBeenCalledWith({
-				userId: user.id,
-				tokenHash: "hashed-token",
-				type: "PASSWORD_RESET",
-				expiresAt: expect.any(Date),
-			});
+			expect(userTokenServiceMock.getEmailCooldown).toHaveBeenCalledWith(
+				user.id,
+				"PASSWORD_RESET",
+			);
+			expect(userTokenServiceMock.create).toHaveBeenCalledWith(
+				user.id,
+				"PASSWORD_RESET",
+			);
 			expect(sendPasswordResetEmail).toHaveBeenCalledWith({
 				to: "john@example.com",
 				token: "raw-token",
@@ -324,21 +319,33 @@ describe("AuthService", () => {
 
 			await service.forgotPassword("john@example.com");
 
-			expect(userTokenRepositoryMock.create).not.toHaveBeenCalled();
+			expect(userTokenServiceMock.create).not.toHaveBeenCalled();
 			expect(sendPasswordResetEmail).not.toHaveBeenCalled();
 		});
 
-		it("should throw TooManyRequestError when user is in cool down", async () => {
+		it("should throw TooManyRequestError when user is in cooldown", async () => {
 			vi.mocked(authRepositoryMock.findByEmail).mockResolvedValue(user);
-			vi.mocked(
-				userTokenRepositoryMock.findLatestByUserIdAndType,
-			).mockResolvedValue(userToken);
+			vi.mocked(userTokenServiceMock.getEmailCooldown).mockResolvedValue(10);
 
 			await expect(service.forgotPassword(user.email)).rejects.toThrow(
 				TooManyRequestError,
 			);
 
-			expect(userTokenRepositoryMock.create).not.toHaveBeenCalled();
+			expect(userTokenServiceMock.create).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("verifyResetPasswordToken function", () => {
+		it("should verify reset password token successfully", async () => {
+			const userToken = createMockUserToken();
+			vi.mocked(userTokenServiceMock.verify).mockResolvedValue(userToken);
+
+			await service.verifyResetPasswordToken("raw-token");
+
+			expect(userTokenServiceMock.verify).toHaveBeenCalledWith(
+				"raw-token",
+				"PASSWORD_RESET",
+			);
 		});
 	});
 
@@ -349,6 +356,7 @@ describe("AuthService", () => {
 		const resetPasswordInput = {
 			token: "token",
 			newPassword: "NewPassword123@",
+			confirmPassword: "NewPassword123@",
 		};
 		const userToken = createMockUserToken({
 			userId: user.id,
@@ -359,10 +367,7 @@ describe("AuthService", () => {
 		});
 
 		it("should reset password when the token is valid", async () => {
-			vi.mocked(hashToken).mockReturnValue("hashed-token");
-			vi.mocked(userTokenRepositoryMock.findByTokenHash).mockResolvedValue(
-				userToken,
-			);
+			vi.mocked(userTokenServiceMock.verify).mockResolvedValue(userToken);
 			vi.mocked(authRepositoryMock.findById).mockResolvedValue(user);
 			vi.mocked(bcrypt.hash).mockResolvedValue("hashed-password" as never);
 			vi.mocked(authRepositoryMock.updatePassword).mockResolvedValue({
@@ -372,9 +377,9 @@ describe("AuthService", () => {
 
 			await service.resetPassword(resetPasswordInput);
 
-			expect(hashToken).toHaveBeenCalledWith("token");
-			expect(userTokenRepositoryMock.findByTokenHash).toHaveBeenCalledWith(
-				"hashed-token",
+			expect(userTokenServiceMock.verify).toHaveBeenCalledWith(
+				"token",
+				"PASSWORD_RESET",
 			);
 			expect(authRepositoryMock.findById).toHaveBeenCalledWith(user.id);
 			expect(bcrypt.hash).toHaveBeenCalledWith("NewPassword123@", 10);
@@ -385,33 +390,33 @@ describe("AuthService", () => {
 		});
 
 		it("should throw BadRequestError when token is invalid", async () => {
-			vi.mocked(hashToken).mockReturnValue("hashed-token");
-			vi.mocked(userTokenRepositoryMock.findByTokenHash).mockResolvedValue(
-				null,
-			);
+			vi.mocked(userTokenServiceMock.verify).mockImplementation(() => {
+				throw new BadRequestError("Invalid or expired token");
+			});
 
 			await expect(service.resetPassword(resetPasswordInput)).rejects.toThrow(
 				BadRequestError,
 			);
 
-			expect(hashToken).toHaveBeenCalledWith("token");
-			expect(userTokenRepositoryMock.findByTokenHash).toHaveBeenCalledWith(
-				"hashed-token",
+			expect(userTokenServiceMock.verify).toHaveBeenCalledWith(
+				"token",
+				"PASSWORD_RESET",
 			);
 			expect(authRepositoryMock.updatePassword).not.toHaveBeenCalled();
 		});
 
 		it("should throw BadRequestError when user not found", async () => {
-			vi.mocked(hashToken).mockReturnValue("hashed-token");
-			vi.mocked(userTokenRepositoryMock.findByTokenHash).mockResolvedValue(
-				userToken,
-			);
+			vi.mocked(userTokenServiceMock.verify).mockResolvedValue(userToken);
 			vi.mocked(authRepositoryMock.findById).mockResolvedValue(null);
 
 			await expect(service.resetPassword(resetPasswordInput)).rejects.toThrow(
 				BadRequestError,
 			);
 
+			expect(userTokenServiceMock.verify).toHaveBeenCalledWith(
+				"token",
+				"PASSWORD_RESET",
+			);
 			expect(authRepositoryMock.updatePassword).not.toHaveBeenCalled();
 		});
 	});

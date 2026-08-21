@@ -1,7 +1,7 @@
 import type { ApiErrorResponse } from "@repo/api-contracts";
 import type { NextFunction, Request, Response } from "express";
 import z, { ZodError } from "zod";
-import { AppError } from "../errors/index.js";
+import { AppError, TooManyRequestError } from "../errors/index.js";
 
 export function errorHandler(
 	error: Error,
@@ -10,6 +10,10 @@ export function errorHandler(
 	_next: NextFunction,
 ) {
 	if (error instanceof AppError) {
+		if (error instanceof TooManyRequestError && error.retryAfter) {
+			res.set("Retry-After", String(error.retryAfter));
+		}
+
 		return res.status(error.statusCode).json({
 			message: error.message,
 		});

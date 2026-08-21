@@ -1,4 +1,5 @@
 import type { UserDto } from "@repo/api-contracts";
+import type { UserToken } from "../../generated/prisma/client.js";
 import type { UserTokenType } from "../../generated/prisma/enums.js";
 
 export interface AccessTokenPayload {
@@ -39,4 +40,9 @@ export interface LoginResult {
 
 export interface AuthenticatedUser {
 	id: string;
+}
+
+export interface CreatedUserToken {
+	token: string;
+	userToken: UserToken;
 }

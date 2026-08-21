@@ -19,12 +19,12 @@ Complete the Authentication feature.
 
 ### MVP
 
-- [ ] Register
-- [ ] Login
+- [x] Register
+- [x] Login
 - [ ] Refresh
 - [ ] Logout
-- [ ] Forgot password
-- [ ] Reset password
+- [x] Forgot password
+- [x] Reset password
 
 ### Bugs
 
@@ -54,10 +54,11 @@ Complete the Authentication feature.
 
 ### Frontend
 
-- [ ] Create register page
-- [ ] Create login page
-- [ ] Connect API
-- [ ] Handle validation errors
+- [x] Create register page
+- [x] Create login page
+- [x] Create forgot password page
+- [x] Create reset password page
+- [x] Connect API
 
 ### Testing
 
@@ -73,7 +74,7 @@ Complete the Authentication feature.
 
 ### Documentation
 
-- [ ] Update API documentation
+- [x] Update API documentation
 - [ ] Update README (if needed)
 
 ---

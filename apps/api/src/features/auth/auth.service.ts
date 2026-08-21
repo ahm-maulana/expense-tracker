@@ -12,8 +12,6 @@ import {
 	TooManyRequestError,
 	UnauthorizedError,
 } from "../../common/errors/app-error.js";
-import { hashToken } from "../../common/utils/hash.js";
-import { generateRandomToken } from "../../common/utils/token.js";
 import type { User } from "../../generated/prisma/client.js";
 import {
 	decodeToken,
@@ -21,10 +19,6 @@ import {
 	signRefreshToken,
 	verifyRefreshToken,
 } from "../../lib/jwt.js";
-import {
-	PASSWORD_RESET_REQUEST_COOLDOWN_MS,
-	PASSWORD_RESET_TOKEN_EXPIRATION_MS,
-} from "./auth.constant.js";
 import type AuthRepository from "./auth.repository.js";
 import type {
 	AccessTokenPayload,
@@ -33,13 +27,13 @@ import type {
 } from "./auth.types.js";
 import { sendPasswordResetEmail } from "./auth-email.service.js";
 import type RefreshTokenRepository from "./refresh-token-repository.js";
-import type UserTokenRepository from "./user-token-repository.js";
+import type UserTokenService from "./user-token.service.js";
 
 class AuthService {
 	constructor(
 		private authRepository: AuthRepository,
 		private refreshTokenRepository: RefreshTokenRepository,
-		private userTokenRepository: UserTokenRepository,
+		private userTokenService: UserTokenService,
 	) {}
 
 	async register(
@@ -215,58 +209,39 @@ class AuthService {
 			return;
 		}
 
-		const cooldownStart = new Date(
-			Date.now() - PASSWORD_RESET_REQUEST_COOLDOWN_MS,
+		const remainingSecond = await this.userTokenService.getEmailCooldown(
+			existingUser.id,
+			"PASSWORD_RESET",
 		);
 
-		const isInCooldown =
-			await this.userTokenRepository.findLatestByUserIdAndType(
-				existingUser.id,
-				"PASSWORD_RESET",
-				cooldownStart,
-			);
-
-		if (isInCooldown) {
+		if (remainingSecond > 0) {
 			throw new TooManyRequestError(
 				"A reset email was recently sent. Try again in a minute",
+				remainingSecond,
 			);
 		}
 
-		const rawToken = generateRandomToken();
-
-		const hashedToken = hashToken(rawToken);
-		const tokenExpiresAt = new Date(
-			Date.now() + PASSWORD_RESET_TOKEN_EXPIRATION_MS,
+		const { token } = await this.userTokenService.create(
+			existingUser.id,
+			"PASSWORD_RESET",
 		);
-
-		await this.userTokenRepository.create({
-			userId: existingUser.id,
-			tokenHash: hashedToken,
-			type: "PASSWORD_RESET",
-			expiresAt: tokenExpiresAt,
-		});
 
 		// SEND RESET EMAIL
 		await sendPasswordResetEmail({
 			to: existingUser.email,
-			token: rawToken,
+			token,
 		});
 	}
 
+	async verifyResetPasswordToken(token: string): Promise<void> {
+		await this.userTokenService.verify(token, "PASSWORD_RESET");
+	}
+
 	async resetPassword(data: ResetPasswordInput): Promise<void> {
-		const hashedToken = hashToken(data.token);
-
-		const userToken =
-			await this.userTokenRepository.findByTokenHash(hashedToken);
-
-		if (
-			!userToken ||
-			userToken.revokedAt ||
-			userToken.consumedAt ||
-			userToken.expiresAt <= new Date()
-		) {
-			throw new BadRequestError("Invalid or expired reset token.");
-		}
+		const userToken = await this.userTokenService.verify(
+			data.token,
+			"PASSWORD_RESET",
+		);
 
 		const existingUser = await this.authRepository.findById(userToken.userId);
 
@@ -277,6 +252,9 @@ class AuthService {
 		const hashedPassword = await bcrypt.hash(data.newPassword, 10);
 
 		await this.authRepository.updatePassword(existingUser.id, hashedPassword);
+
+		// Mark token as used
+		await this.userTokenService.consume(userToken.id);
 	}
 
 	private async issueTokens(
